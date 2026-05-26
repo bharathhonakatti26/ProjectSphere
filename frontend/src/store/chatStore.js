@@ -2,7 +2,8 @@ import { create } from 'zustand';
 import { io } from 'socket.io-client';
 import { useAuthStore } from './authStore';
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL
+  || (import.meta.env.DEV ? 'http://localhost:5000' : window.location.origin);
 
 export const useChatStore = create((set, get) => ({
   socket: null,

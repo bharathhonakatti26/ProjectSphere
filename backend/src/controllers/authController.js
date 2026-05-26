@@ -10,6 +10,35 @@ const {
 } = require('../utils');
 const config = require('../config');
 
+const getRefreshCookieOptions = () => {
+  const options = {
+    httpOnly: true,
+    secure: config.cookieSecure,
+    sameSite: config.cookieSameSite,
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  };
+
+  if (config.cookieDomain) {
+    options.domain = config.cookieDomain;
+  }
+
+  return options;
+};
+
+const getClearCookieOptions = () => {
+  const options = {
+    httpOnly: true,
+    secure: config.cookieSecure,
+    sameSite: config.cookieSameSite,
+  };
+
+  if (config.cookieDomain) {
+    options.domain = config.cookieDomain;
+  }
+
+  return options;
+};
+
 /**
  * @desc    Register new user
  * @route   POST /api/auth/register
@@ -48,12 +77,7 @@ const register = asyncHandler(async (req, res) => {
   await user.save();
 
   // Set refresh token in HTTP-only cookie
-  res.cookie('refreshToken', refreshToken, {
-    httpOnly: true,
-    secure: config.cookieSecure,
-    sameSite: 'strict',
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-  });
+  res.cookie('refreshToken', refreshToken, getRefreshCookieOptions());
 
   return ApiResponse.created(res, {
     user: {
@@ -104,12 +128,7 @@ const login = asyncHandler(async (req, res) => {
   await user.save();
 
   // Set refresh token in HTTP-only cookie
-  res.cookie('refreshToken', refreshToken, {
-    httpOnly: true,
-    secure: config.cookieSecure,
-    sameSite: 'strict',
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  });
+  res.cookie('refreshToken', refreshToken, getRefreshCookieOptions());
 
   return ApiResponse.success(res, {
     user: {
@@ -163,12 +182,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   await user.addRefreshToken(tokens.refreshToken);
 
   // Set new refresh token in cookie
-  res.cookie('refreshToken', tokens.refreshToken, {
-    httpOnly: true,
-    secure: config.cookieSecure,
-    sameSite: 'strict',
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  });
+  res.cookie('refreshToken', tokens.refreshToken, getRefreshCookieOptions());
 
   return ApiResponse.success(res, {
     accessToken: tokens.accessToken,
@@ -188,7 +202,7 @@ const logout = asyncHandler(async (req, res) => {
   }
 
   // Clear cookie
-  res.clearCookie('refreshToken');
+  res.clearCookie('refreshToken', getClearCookieOptions());
 
   return ApiResponse.success(res, null, 'Logged out successfully');
 });
@@ -202,7 +216,7 @@ const logoutAll = asyncHandler(async (req, res) => {
   await req.user.clearAllRefreshTokens();
 
   // Clear cookie
-  res.clearCookie('refreshToken');
+  res.clearCookie('refreshToken', getClearCookieOptions());
 
   return ApiResponse.success(res, null, 'Logged out from all devices');
 });

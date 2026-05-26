@@ -22,6 +22,8 @@ const config = {
 
   // Cookie
   cookieSecure: process.env.COOKIE_SECURE === 'true',
+  cookieSameSite: process.env.COOKIE_SAMESITE || 'strict',
+  cookieDomain: process.env.COOKIE_DOMAIN || undefined,
 
   // Rate Limiting
   rateLimit: {
